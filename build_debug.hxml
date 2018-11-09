@@ -1,0 +1,6 @@
+-cp source
+-main Falsh
+#-dce full
+-debug
+
+--interp

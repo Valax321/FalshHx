@@ -1,0 +1,9 @@
+-cp source
+-main Falsh
+#-dce full
+-debug
+
+-cpp bin/cpp/debug
+
+-cmd cd bin/cpp/debug/
+-cmd Falsh

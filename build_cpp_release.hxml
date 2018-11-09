@@ -1,0 +1,8 @@
+-cp source
+-main Falsh
+-dce full
+
+-cpp bin/cpp/release
+
+-cmd cd bin/cpp/release/
+-cmd Falsh
