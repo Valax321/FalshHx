@@ -1,5 +1,5 @@
-using haxe.io.Path;
-using sys.FileSystem;
+using hx.files.Path;
+using hx.files.Dir;
 
 class ChangeDirectoryCommand implements BuiltinCommand
 {
@@ -10,19 +10,21 @@ class ChangeDirectoryCommand implements BuiltinCommand
     {
         if (args.length > 0)
         {
-            var absPath = FileSystem.absolutePath(args[0]);
-            if (FileSystem.exists(absPath))
+            var path = Dir.getCWD().path.join(args[0]);
+            path.normalize();            
+            if (path.exists())
             {
-                Sys.setCwd(absPath);
+                var dir = Dir.of(path);
+                dir.setCWD();
             }
             else
             {
-                ShellEnvironment.instance.println('cd: directory ${absPath} does not exist.');
+                ShellEnvironment.instance.println('cd: directory ${path.getAbsolutePath()} does not exist.');
             }
         }
         else
         {
-            ShellEnvironment.instance.println(Sys.getCwd());
+            ShellEnvironment.instance.println(Std.string(Dir.getCWD()));
         }
     }
 }

@@ -1,14 +1,17 @@
 using haxe.ds.GenericStack;
 using haxe.Json;
-using sys.FileSystem;
-using sys.io.File;
-using haxe.io.Path;
+using hx.files.File;
+using hx.files.Path;
+using hx.files.Dir;
+using hx.strings.StringBuilder;
+using haxe.Utf8;
 
 /**
 Main controller class for the shell.
 **/
 class ShellEnvironment
 {
+    
     /**
     The global instance of the shell
     **/
@@ -29,6 +32,8 @@ class ShellEnvironment
 
     private function new() {}
 
+    private var wantsToQuit = false;
+
     /**
     Runs the shell
     **/
@@ -36,6 +41,11 @@ class ShellEnvironment
     {
         loadConfig();
         setupPrompt();
+
+        while (!wantsToQuit)
+        {
+            processInput();
+        }
     }
 
     /**
@@ -44,9 +54,9 @@ class ShellEnvironment
     private function loadConfig()
     {
         var cfgPath = getConfigPath();
-        if (FileSystem.exists(cfgPath))
+        if (cfgPath.exists())
         {
-            var cfg: Dynamic = Json.parse(File.getContent(cfgPath));
+            var cfg: Dynamic = Json.parse(File.of(cfgPath).readAsString());
             maxHistory = cfg.historySize;
         }
     }
@@ -57,6 +67,7 @@ class ShellEnvironment
     private function setupPrompt()
     {
         println("Falsh Shell (C) Andrew Castillo 2018", Yellow);
+        println('History size: ${maxHistory}');
     }
 
     /**
@@ -66,11 +77,57 @@ class ShellEnvironment
     **/
     private function getConfigPath()
     {        
-        #if WINDOWS
+        #if windows
         return Path.join([Sys.getEnv("localappdata"), "falsh", "falsh_config.json"]);
         #else
-        return Path.join(["~", ".falsh", "falsh_config.json"]);
+        return Path.of("~/.falsh/falsh_config.json");
         #end
+    }
+
+    private function getUserName()
+    {
+        #if windows
+        return Sys.getEnv("username");
+        #else
+        return Sys.getEnv("USER");
+        #end
+    }
+
+    /**
+    Handles user input and passes it to the interpreter
+    **/
+    private function processInput()
+    {
+        print(getUserName(), Green);
+        print(':${Dir.getCWD().path.filename}$ ', Blue);
+        var submit = false;
+        var buf = new StringBuilder();
+        while (!submit)
+        {
+            var char = Sys.getChar(false);
+            var input = String.fromCharCode(char);
+            //print(Std.string(char), White);
+            switch (char)
+            {
+                case 3: //Ctrl + C
+                wantsToQuit = true;
+                break;
+                case 13: //newline
+                submit = true;
+                case 9: //Tab
+                buf.add("TAB");
+                case 127: //Delete
+                var bufTemp = buf.toString();
+                buf.clear(); //Nasty evil hack to remove the last char from the StringBuilder since Haxe inexplicably doesn't have a remove() in StringBuf
+                buf.add(bufTemp.substr(0, bufTemp.length - 2));
+                print(String.fromCharCode(127), White); //Backspaces the last char typed in
+                default:
+                 buf.add(input);
+                 print(input, White);
+            }
+        }
+        println("", White);
+        println(buf.toString(), Cyan);
     }
 
     /**
@@ -97,14 +154,28 @@ class ShellEnvironment
     }
 
     /**
+    Escapes the given string with terminal colour codes
+    @param str The string to wrap in the colour code
+    @param color The ANSIColor to use
+    **/
+    static function colorEscape(str: String, color: ANSIColor)
+    {
+        return switch (color) 
+        {
+            case Rgb(r, g, b): '\u001b[38;2;${r};${g};${b}m${str}\u001b[39;49m';
+            default: '\u001b[38;5;${Type.enumIndex(color)}m${str}\u001b[39;49m';
+        }
+    }
+
+    /**
     Prints text to the terminal, with an appended newline.
     @param msg The message to print
     @param color Optional ANSI colour
     **/
     public function println(msg: String, ?color: ANSIColor)
     {
-        if (color == null) color = White;
-        Sys.println(msg);
+        if (color == null) Sys.println(msg);
+        else Sys.println(colorEscape(msg, color));
     }
 
     /**
@@ -114,7 +185,7 @@ class ShellEnvironment
     **/
     public function print(msg: String, ?color: ANSIColor)
     {
-        if (color == null) color = White;
-        Sys.print(msg);
+        if (color == null) Sys.print(msg);
+        Sys.print(colorEscape(msg, color));
     }
 }

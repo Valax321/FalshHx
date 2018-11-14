@@ -12,9 +12,6 @@ enum ANSIColor
     Blue;
     Magenta;
     Cyan;
-    /**
-    Not really white, LightWhite is pure #ffffff (usually)
-    **/
     White;
     LightBlack;
     LightRed;
@@ -24,4 +21,5 @@ enum ANSIColor
     LightMagenta;
     LightCyan;
     LightWhite;
+    Rgb(r:Int, g:Int, b:Int);
 }

@@ -3,6 +3,8 @@
 #-dce full
 -debug
 
+-lib haxe-files
+
 -cpp bin/cpp/debug
 
 -cmd cd bin/cpp/debug/

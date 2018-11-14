@@ -2,6 +2,8 @@
 -main Falsh
 -dce full
 
+-lib haxe-files
+
 -cpp bin/cpp/release
 
 -cmd cd bin/cpp/release/

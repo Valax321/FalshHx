@@ -8,6 +8,9 @@ Falsh is a bash-like shell for Windows, macOS and Linux. FalshHx is a rewrite in
 * WIP: glob for files/directories.
 * WIP: UNIX-style pipes.
 
+## Required Packages
+* haxe-files (>=1.1.1)
+
 ## Long-Term Goals
 * Full bash-style scripting capabilities.
 
